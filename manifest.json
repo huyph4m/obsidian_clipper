@@ -1,0 +1,80 @@
+{
+  "manifest_version": 3,
+  "name": "Obsidian Web Clipper & AI Companion",
+  "version": "2.2.0",
+  "description": "In-page Web Annotator & Clipper for Obsidian: W3C multi-selector highlights, sticky notes, area annotations, bi-directional Local REST API sync, and multi-vendor AI.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "contextMenus",
+    "sidePanel",
+    "tabs",
+    "alarms",
+    "notifications"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "https://127.0.0.1/*",
+    "http://localhost/*",
+    "https://localhost/*"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Obsidian AI Companion Side Panel",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "quick-clip": {
+      "suggested_key": {
+        "default": "Alt+Shift+O",
+        "mac": "Command+Shift+O"
+      },
+      "description": "Quick capture current page to Obsidian"
+    },
+    "open-sidepanel": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Toggle Obsidian Companion Side Panel"
+    },
+    "highlight-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+H",
+        "mac": "Command+Shift+H"
+      },
+      "description": "Highlight selected text with last-used color"
+    },
+    "toggle-annotations": {
+      "suggested_key": {
+        "default": "Alt+Shift+A",
+        "mac": "Command+Shift+A"
+      },
+      "description": "Show or hide in-page annotations"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

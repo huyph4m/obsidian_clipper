@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obsidian AI Clipper & Companion - Settings</title>
+  <link rel="stylesheet" href="styles/workspace.css" />
+  <style>
+    body.settings-page {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+    }
+    .settings-container {
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+    .settings-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .settings-card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e9d5ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .settings-card p.desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: -8px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+    .form-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .vendor-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+    .vendor-tab {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .vendor-tab.active {
+      background: var(--accent);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
+    .model-preset-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .preset-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .preset-chip:hover {
+      border-color: var(--accent-hover);
+      color: #e9d5ff;
+    }
+    .test-result-box {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      display: none;
+    }
+    .test-result-box.show {
+      display: block;
+    }
+  </style>
+</head>
+<body class="settings-page">
+  <div class="settings-container">
+    <header class="settings-header">
+      <div class="brand-group">
+        <img src="icons/icon48.png" alt="Obsidian" style="width:32px; height:32px; border-radius:8px;" />
+        <div>
+          <h1 style="font-size:20px; font-weight:700;">Obsidian Web Clipper &amp; AI Companion</h1>
+          <p style="font-size:12.5px; color:var(--text-secondary);">
+            Configure Obsidian Local REST API, Multi-Vendor LLMs (including DeepSeek), Web Annotator &amp; Permissions
+          </p>
+        </div>
+      </div>
+      <button id="saveAllSettingsBtn" class="btn btn-primary" style="padding:8px 18px; font-size:13px;">
+        &#128190; Save Settings
+      </button>
+    </header>
+
+    <!-- 1. Obsidian Local REST API Connection -->
+    <section class="settings-card">
+      <h2>&#128279; 1. Obsidian Local REST API Connection</h2>
+      <p class="desc">
+        Install and enable the <strong>Local REST API</strong> community plugin inside Obsidian, then paste your API Key below.
+      </p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="obsidianProtocol">Protocol</label>
+          <select id="obsidianProtocol" class="select-field">
+            <option value="http">HTTP (Default Port 27123 - Recommended)</option>
+            <option value="https">HTTPS (Port 27124 - Requires Self-Signed Cert Trust)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="obsidianPort">Port</label>
+          <input type="text" id="obsidianPort" class="input-field" placeholder="27123" />
+        </div>
+        <div class="form-group">
+          <label for="obsidianHost">Host</label>
+          <input type="text" id="obsidianHost" class="input-field" placeholder="127.0.0.1" />
+        </div>
+        <div class="form-group">
+          <label for="obsidianApiKey">Local REST API Key (Bearer Token)</label>
+          <input type="password" id="obsidianApiKey" class="input-field" placeholder="Paste API key from Obsidian settings..." />
+        </div>
+        <div class="form-group">
+          <label for="defaultFolder">Default Clippings Folder in Vault</label>
+          <input type="text" id="defaultFolder" class="input-field" placeholder="Clippings" />
+        </div>
+        <div class="form-group">
+          <label for="attachmentsFolder">Image Attachments Folder in Vault</label>
+          <input type="text" id="attachmentsFolder" class="input-field" placeholder="Attachments" />
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button id="testObsidianBtn" class="btn btn-primary">Test Obsidian Connection</button>
+        <div id="obsidianTestResult" class="test-result-box"></div>
+      </div>
+    </section>
+
+    <!-- 2. Multi-Vendor LLM Configuration -->
+    <section class="settings-card">
+      <h2>&#129504; 2. Multi-Vendor AI / LLM Configuration</h2>
+      <p class="desc">
+        Select your active AI provider for Auto-Tagging, Page Summarization, and In-Page Annotation AI Assistance.
+      </p>
+
+      <div class="form-group">
+        <label for="activeVendorSelect">Active LLM Provider</label>
+        <select id="activeVendorSelect" class="select-field" style="max-width:360px;">
+          <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+          <option value="deepseek">DeepSeek (deepseek-chat V3 / deepseek-reasoner R1)</option>
+          <option value="anthropic">Anthropic (Claude 3.5 Sonnet / Haiku)</option>
+          <option value="gemini">Google Gemini (Gemini 2.5 Flash / Pro)</option>
+          <option value="ollama">Ollama (Local Open-Weights LLM)</option>
+          <option value="custom">Custom OpenAI-Compatible Endpoint (OpenRouter, Groq, LM Studio)</option>
+        </select>
+      </div>
+
+      <div class="vendor-tabs" id="vendorConfigTabs">
+        <button class="vendor-tab active" data-vendor="openai">OpenAI</button>
+        <button class="vendor-tab" data-vendor="deepseek">DeepSeek</button>
+        <button class="vendor-tab" data-vendor="anthropic">Anthropic Claude</button>
+        <button class="vendor-tab" data-vendor="gemini">Google Gemini</button>
+        <button class="vendor-tab" data-vendor="ollama">Ollama (Local)</button>
+        <button class="vendor-tab" data-vendor="custom">Custom Compatible</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label id="vendorEndpointLabel" for="vendorEndpointInput">API Endpoint URL</label>
+          <input type="text" id="vendorEndpointInput" class="input-field" />
+        </div>
+        <div class="form-group">
+          <label for="vendorModelInput">Model Name</label>
+          <input type="text" id="vendorModelInput" class="input-field" placeholder="e.g. deepseek-chat, deepseek-reasoner, gpt-4o-mini" />
+          <div id="modelPresetsContainer" class="model-preset-chips"></div>
+        </div>
+        <div class="form-group">
+          <label for="vendorApiKeyInput">API Key (leave blank for local Ollama)</label>
+          <input type="password" id="vendorApiKeyInput" class="input-field" placeholder="sk-..." />
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-top:8px; padding-top:14px; border-top:1px solid var(--border-color);">
+        <div class="form-group">
+          <label for="summaryStyleSelect">Default AI Summary Style</label>
+          <select id="summaryStyleSelect" class="select-field">
+            <option value="bullet_key_takeaways">TL;DR + Key Takeaways (Bullets)</option>
+            <option value="concise">Concise 2-3 Sentence Summary</option>
+            <option value="executive">Executive Summary (Thesis, Insights, Implications)</option>
+            <option value="academic">Academic &amp; Research Synthesis</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="maxAutoTagsInput">Max Auto-Generated Tags</label>
+          <input type="number" id="maxAutoTagsInput" class="input-field" min="1" max="15" value="6" />
+        </div>
+        <div class="form-group">
+          <label for="tagPrefixInput">Optional Tag Prefix (e.g. <code>clip/</code> or <code>ai/</code>)</label>
+          <input type="text" id="tagPrefixInput" class="input-field" placeholder="Leave empty for root tags" />
+        </div>
+        <div class="form-group">
+          <label for="customSummaryPromptInput">Custom Summary Prompt Override (Optional)</label>
+          <input type="text" id="customSummaryPromptInput" class="input-field" placeholder="Optional custom prompt instructions..." />
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button id="testLlmBtn" class="btn btn-ai">Test Active LLM Provider</button>
+        <div id="llmTestResult" class="test-result-box"></div>
+      </div>
+    </section>
+
+    <!-- 3. Phase 4: In-Page Web Annotator & Site Permissions -->
+    <section class="settings-card">
+      <h2>&#9998; 3. In-Page Web Annotator &amp; Site Permissions</h2>
+      <p class="desc">
+        Configure default highlight colors, Obsidian Managed Block format, Fuzzy Re-Anchoring threshold, and per-site auto-restore permissions.
+      </p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="annotatorDefaultColorSelect">Default Highlight Color</label>
+          <select id="annotatorDefaultColorSelect" class="select-field">
+            <option value="yellow">Yellow (#facc15)</option>
+            <option value="green">Green (#34d399)</option>
+            <option value="blue">Blue (#60a5fa)</option>
+            <option value="purple">Purple (#c084fc)</option>
+            <option value="pink">Pink (#f472b6)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="annotatorSyncModeSelect">Obsidian Annotation Sync Mode</label>
+          <select id="annotatorSyncModeSelect" class="select-field">
+            <option value="auto">Auto (Include managed ## Annotations block on Save/Sync)</option>
+            <option value="manual">Manual ("Sync Annotations Now" button only)</option>
+            <option value="local_only">Local-Only (Never write annotations to Obsidian)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="annotatorObsidianFormatSelect">Obsidian Annotation Rendering Format</label>
+          <select id="annotatorObsidianFormatSelect" class="select-field">
+            <option value="callout">Obsidian Callouts (&gt; [!quote] ==text== ^ann-xxxx)</option>
+            <option value="mark">Bullet List with ==Highlight== &amp; ^ann-xxxx</option>
+            <option value="plain">Plain Blockquote</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="annotatorFuzzyThresholdInput">Fuzzy Re-Anchoring Similarity Threshold (0.60 - 0.95)</label>
+          <input type="number" id="annotatorFuzzyThresholdInput" class="input-field" step="0.02" min="0.60" max="0.95" value="0.78" />
+        </div>
+
+        <div class="form-group full-width">
+          <label for="annotatorBlockedDomainsInput">Privacy Domain Blocklist (Comma-separated domains never sent to LLM)</label>
+          <input type="text" id="annotatorBlockedDomainsInput" class="input-field" placeholder="e.g. mail.google.com, bank.com, internal.corp" />
+        </div>
+      </div>
+
+      <!-- Optional Host Permissions Manager -->
+      <div style="padding-top:12px; border-top:1px solid var(--border-color); display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="font-size:13px;">Auto-Restore Site Permissions (optional_host_permissions)</strong>
+            <p style="font-size:11.5px; color:var(--text-secondary);">
+              Sites listed below automatically inject the Web Annotator and re-anchor your highlights on page load.
+            </p>
+          </div>
+          <button id="enableEverywhereBtn" class="btn btn-sm btn-primary">
+            Enable Auto-Restore Everywhere (*://*/*)
+          </button>
+        </div>
+        <div id="grantedOriginsList" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+      </div>
+    </section>
+
+    <!-- 4. Bi-Directional Sync & Template Customization -->
+    <section class="settings-card">
+      <h2>&#8644; 4. Bi-Directional Sync &amp; Note Body Template</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="toggle-label">
+            <input type="checkbox" id="autoSyncOnEditCheckbox" />
+            <span>Enable Live 2-Way Sync by default when note is linked</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="syncIntervalInput">Live Sync Poll Interval (seconds)</label>
+          <input type="number" id="syncIntervalInput" class="input-field" min="4" max="120" value="10" />
+        </div>
+        <div class="form-group full-width">
+          <label for="defaultTemplateTextarea">
+            Default Standard Web Article Body Template (Metadata is stored automatically in Obsidian Note Properties)
+          </label>
+          <textarea
+            id="defaultTemplateTextarea"
+            class="markdown-textarea"
+            style="height:150px; border:1px solid var(--border-color); border-radius:var(--radius-sm);"
+          ></textarea>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="settingsToast" class="workspace-toast hidden"></div>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

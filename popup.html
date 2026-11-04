@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obsidian AI Clipper & Companion</title>
+  <link rel="stylesheet" href="styles/workspace.css" />
+</head>
+<body class="workspace-body">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-group">
+      <img src="icons/icon48.png" alt="Obsidian" class="brand-logo" />
+      <span class="brand-title">Obsidian Companion</span>
+      <div id="connectionStatusPill" class="status-pill" title="Click to test Obsidian Local REST API connection">
+        <span class="status-dot"></span>
+        <span id="connectionStatusText">Checking...</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="openSidePanelBtn" class="icon-btn" title="Open in Persistent Side Panel">
+        &#9707; Side Panel
+      </button>
+      <button id="openInObsidianBtn" class="icon-btn" title="Open Current Note in Obsidian App">
+        &#8599;
+      </button>
+      <button id="openSettingsBtn" class="icon-btn" title="Configure API Keys & Settings">
+        &#9881;
+      </button>
+    </div>
+  </header>
+
+  <!-- Note Title, Vault Folder Selector & Template Bar -->
+  <section class="meta-bar">
+    <div class="meta-row">
+      <input
+        type="text"
+        id="noteTitleInput"
+        class="input-field title-input"
+        placeholder="Note file name (without .md)"
+      />
+    </div>
+
+    <!-- Full Vault Folder Selector Row -->
+    <div class="meta-row">
+      <span class="field-label">&#128193; Folder:</span>
+      <select id="folderSelect" class="select-field folder-select-full" title="Select destination folder from your Obsidian Vault">
+        <option value="Clippings">Clippings</option>
+      </select>
+      <input
+        type="text"
+        id="folderFilterInput"
+        class="input-field folder-filter-input"
+        placeholder="Filter or type new folder path..."
+        title="Type to filter existing vault folders or enter a new subfolder path"
+      />
+      <button id="refreshFoldersBtn" class="icon-btn" title="Re-scan all folders from Obsidian Vault">&#8635;</button>
+    </div>
+
+    <div class="meta-row">
+      <select id="captureModeSelect" class="select-field" style="flex:1;" title="Content Capture Scope (Highlights are managed in the Annotations tab)">
+        <option value="auto">Capture: Auto (Article + Annotations)</option>
+        <option value="article">Capture: Main Article</option>
+        <option value="annotations_only">Capture: Annotations Only Note</option>
+        <option value="full">Capture: Full Web Page</option>
+      </select>
+      <select id="templateSelect" class="select-field template-select" style="flex:1;" title="Note Markdown Template">
+      </select>
+      <button id="recapturePageBtn" class="btn btn-sm" title="Re-extract content from active tab">
+        &#8634; Re-clip
+      </button>
+    </div>
+
+    <!-- Bi-Directional Sync Banner -->
+    <div id="syncBanner" class="sync-banner hidden">
+      <div class="sync-info">
+        <span>&#8644;</span>
+        <span id="syncBannerText">Linked to Vault: Clippings/Note.md</span>
+      </div>
+      <div class="sync-actions">
+        <button id="pullFromVaultBtn" class="btn btn-sm" title="Pull latest edits, Properties & Annotations from Obsidian">
+          &#8595; Pull
+        </button>
+        <button id="pushToVaultBtn" class="btn btn-sm btn-primary" title="Push Editor, Properties & Annotations to Obsidian">
+          &#8593; Push
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI & Quick Capture Action Toolbar -->
+  <section class="ai-toolbar">
+    <div style="display:flex; gap:5px; flex-wrap:wrap;">
+      <button id="aiAutoTagBtn" class="btn btn-ai" title="Generate smart tags using configured LLM and save to Note Properties">
+        &#10024; AI Auto-Tag
+      </button>
+      <button id="aiSummarizeBtn" class="btn btn-ai" title="Summarize page with AI and insert [!abstract] AI Summary callout into note body">
+        &#129504; AI Summary
+      </button>
+      <select id="aiTransformSelect" class="select-field" style="padding:4px 7px; font-size:11.5px;" title="Run AI Transformation on Editor Markdown">
+        <option value="">AI Editor Action...</option>
+        <option value="improve">Polish &amp; Structure Markdown</option>
+        <option value="action_items">Extract Action Checklist</option>
+        <option value="flashcards">Create Spaced-Repetition Flashcards</option>
+        <option value="callout">Synthesize Key Insight Callout</option>
+      </select>
+    </div>
+    <button id="pickImageOnPageBtn" class="btn btn-sm" title="Click any image on the live page to save to Obsidian Vault">
+      &#128247; Pick Image
+    </button>
+  </section>
+
+  <!-- Collapsible Obsidian Note Properties Editor (Native Frontmatter Metadata) -->
+  <section class="properties-panel" id="propertiesPanel">
+    <div class="properties-header" id="togglePropertiesBtn">
+      <div class="properties-title-group">
+        <span id="propertiesChevron">&#9662;</span>
+        <span>Obsidian Note Properties</span>
+        <span id="propertiesCountBadge" class="tab-badge">6</span>
+      </div>
+      <button id="addCustomPropertyBtn" class="btn btn-sm" title="Add custom Obsidian Property key/value">
+        + Add Property
+      </button>
+    </div>
+
+    <div class="properties-body" id="propertiesBody">
+      <div class="prop-grid">
+        <div class="prop-row">
+          <span class="prop-key" title="source (URL property)">&#128279; source</span>
+          <input type="text" id="propSourceInput" class="prop-input" data-prop-key="source" placeholder="https://..." />
+        </div>
+        <div class="prop-row">
+          <span class="prop-key" title="author (Text property)">&#128100; author</span>
+          <input type="text" id="propAuthorInput" class="prop-input" data-prop-key="author" placeholder="Author name" />
+        </div>
+        <div class="prop-row">
+          <span class="prop-key" title="created (Date property)">&#128197; created</span>
+          <input type="date" id="propCreatedInput" class="prop-input" data-prop-key="created" />
+        </div>
+        <div class="prop-row">
+          <span class="prop-key" title="status (Text property)">&#128204; status</span>
+          <select id="propStatusInput" class="prop-input" data-prop-key="status">
+            <option value="unread">unread</option>
+            <option value="reading">reading</option>
+            <option value="completed">completed</option>
+            <option value="archived">archived</option>
+          </select>
+        </div>
+        <div class="prop-row full-row">
+          <span class="prop-key" title="description (Text property)">&#128221; description</span>
+          <input type="text" id="propDescriptionInput" class="prop-input" data-prop-key="description" placeholder="Page description..." />
+        </div>
+      </div>
+
+      <!-- Custom User Properties List -->
+      <div id="customPropertiesList" class="custom-props-list"></div>
+
+      <!-- Tags Property Row -->
+      <div class="prop-tags-row">
+        <span class="prop-key">&#127991; tags</span>
+        <div id="tagChipsContainer" style="display:flex; gap:4px; flex-wrap:wrap; align-items:center;"></div>
+        <input
+          type="text"
+          id="addTagInput"
+          class="tag-input-inline"
+          placeholder="+ Add tag & press Enter..."
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Workspace Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="editorTab">
+      Editor
+    </button>
+    <button class="nav-tab" data-tab="annotationsTab">
+      Annotations <span id="annotationsCountBadge" class="tab-badge">0</span>
+    </button>
+    <button class="nav-tab" data-tab="relevantTab">
+      Relevant Notes <span id="relevantCountBadge" class="tab-badge">0</span>
+    </button>
+    <button class="nav-tab" data-tab="imagesTab">
+      Images <span id="imagesCountBadge" class="tab-badge">0</span>
+    </button>
+  </nav>
+
+  <!-- TAB 1: Markdown Editor & Live Preview + Bi-Directional Sync -->
+  <main id="editorTab" class="tab-content active">
+    <div class="editor-toolbar">
+      <div class="format-buttons">
+        <button class="fmt-btn" data-fmt="bold" title="Bold (**text**)">B</button>
+        <button class="fmt-btn" data-fmt="italic" title="Italic (*text*)">I</button>
+        <button class="fmt-btn" data-fmt="h2" title="Heading 2">H2</button>
+        <button class="fmt-btn" data-fmt="h3" title="Heading 3">H3</button>
+        <button class="fmt-btn" data-fmt="quote" title="Blockquote">&ldquo;</button>
+        <button class="fmt-btn" data-fmt="code" title="Code Block">&lt;/&gt;</button>
+        <button class="fmt-btn" data-fmt="callout" title="Insert Obsidian Callout">[!info]</button>
+        <button class="fmt-btn" data-fmt="wikilink" title="Insert [[Wikilink]]">[[ ]]</button>
+        <button class="fmt-btn" data-fmt="task" title="Checklist item">- [ ]</button>
+      </div>
+      <div class="format-buttons">
+        <button id="viewEditBtn" class="fmt-btn" title="Edit Markdown">Edit</button>
+        <button id="viewSplitBtn" class="fmt-btn" title="Split View">Split</button>
+        <button id="viewPreviewBtn" class="fmt-btn" title="Rendered Preview">Preview</button>
+      </div>
+    </div>
+
+    <div id="editorContainer" class="editor-container">
+      <textarea
+        id="markdownEditor"
+        class="markdown-textarea"
+        placeholder="Captured Markdown note body will appear here..."
+        spellcheck="false"
+      ></textarea>
+      <div id="markdownPreview" class="markdown-preview"></div>
+    </div>
+  </main>
+
+  <!-- TAB 2: In-Page Web Annotator Sidebar ("Annotations" Tab) -->
+  <section id="annotationsTab" class="tab-content">
+    <div class="pane-scroll">
+      <div id="sitePermissionBanner" class="sync-banner hidden" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.4);">
+        <div class="sync-info" style="color:#a7f3d0;">
+          <span>&#128274;</span>
+          <span id="sitePermissionText">Auto-restore annotations when revisiting this site?</span>
+        </div>
+        <button id="grantSitePermissionBtn" class="btn btn-sm btn-primary" style="background:#10b981;border-color:#059669;">
+          Always Restore on Site
+        </button>
+      </div>
+
+      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button id="addStickyNoteBtn" class="btn btn-sm">&#128204; + Sticky</button>
+          <button id="addAreaAnnotationBtn" class="btn btn-sm">&#9634; + Area/Image</button>
+          <button id="addPageNoteBtn" class="btn btn-sm">&#128221; + Page Note</button>
+          <button id="addBookmarkMarkerBtn" class="btn btn-sm">&#128278; + Bookmark</button>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <button id="aiSuggestHighlightsBtn" class="btn btn-sm btn-ai">&#10024; Suggest</button>
+          <button id="aiSummarizeAnnotationsBtn" class="btn btn-sm btn-ai">&#129504; Digest</button>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <input
+          type="text"
+          id="annSearchInput"
+          class="input-field"
+          style="flex:1;"
+          placeholder="Search quotes, comments, or #tags..."
+        />
+        <select id="annFilterTypeSelect" class="select-field" style="width:105px;">
+          <option value="all">All Types</option>
+          <option value="highlight">Highlights</option>
+          <option value="note">Notes</option>
+          <option value="sticky">Sticky Pins</option>
+          <option value="area">Area/Image</option>
+          <option value="page_note">Page Notes</option>
+          <option value="orphaned">Orphaned</option>
+        </select>
+        <select id="annFilterColorSelect" class="select-field" style="width:92px;">
+          <option value="all">All Colors</option>
+          <option value="yellow">Yellow</option>
+          <option value="green">Green</option>
+          <option value="blue">Blue</option>
+          <option value="purple">Purple</option>
+          <option value="pink">Pink</option>
+        </select>
+      </div>
+
+      <div id="aiSuggestionsContainer" class="hidden" style="display:none;flex-direction:column;gap:6px;"></div>
+
+      <div id="undoDeleteBanner" class="sync-banner hidden">
+        <span style="color:#fde68a;">Annotation deleted.</span>
+        <button id="undoDeleteAnnotationBtn" class="btn btn-sm">Undo Delete</button>
+      </div>
+
+      <div id="annotationsListContainer" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="empty-state">
+          Select any text on the webpage to highlight or annotate.
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border-color);margin-top:auto;">
+        <div style="display:flex;gap:5px;">
+          <button id="exportAnnotationsJsonBtn" class="btn btn-sm">Export JSON</button>
+          <button id="importAnnotationsJsonBtn" class="btn btn-sm">Import JSON</button>
+          <input type="file" id="importAnnotationsFileInput" accept=".json" style="display:none;" />
+        </div>
+        <button id="syncAnnotationsToObsidianBtn" class="btn btn-sm btn-primary">
+          &#8644; Sync Annotations Now
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: Relevant Vault Notes Finder & Bi-Directional Loader -->
+  <section id="relevantTab" class="tab-content">
+    <div class="pane-scroll">
+      <div class="search-box-row">
+        <input
+          type="text"
+          id="vaultSearchInput"
+          class="input-field"
+          style="flex:1;"
+          placeholder="Search your Obsidian vault or filter related notes..."
+        />
+        <button id="vaultSearchBtn" class="btn btn-primary">Search Vault</button>
+      </div>
+      <div id="relevantNotesList">
+        <div class="empty-state">Scanning vault for notes related to this page...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 4: Page Image Capture Gallery -->
+  <section id="imagesTab" class="tab-content">
+    <div class="pane-scroll">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; color:var(--text-secondary);">
+          Save images directly into your Obsidian Vault attachment folder &amp; insert <code>![[embed]]</code>
+        </span>
+        <button id="saveAllImagesBtn" class="btn btn-sm btn-primary">
+          Save All &amp; Rewrite Links
+        </button>
+      </div>
+      <div id="imagesGrid" class="image-grid">
+        <div class="empty-state">No images detected on this page.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast Notification -->
+  <div id="workspaceToast" class="workspace-toast hidden"></div>
+
+  <!-- Footer Action Bar -->
+  <footer class="app-footer">
+    <div class="footer-left">
+      <label class="toggle-label" title="Automatically sync local editor, Properties & Annotations with Obsidian vault">
+        <input type="checkbox" id="liveBiSyncToggle" />
+        <span>Live 2-Way Sync</span>
+      </label>
+      <span id="wordCountLabel">0 words</span>
+    </div>
+    <div class="footer-right">
+      <button id="appendDailyNoteBtn" class="btn" title="Append editor content to Today's Daily Note">
+        + Daily Note
+      </button>
+      <button id="saveToObsidianBtn" class="btn btn-primary" title="Save or Update Note + Annotations in Selected Obsidian Folder">
+        &#128190; Save to Obsidian
+      </button>
+    </div>
+  </footer>
+
+  <script type="module" src="workspace.js"></script>
+</body>
+</html>
