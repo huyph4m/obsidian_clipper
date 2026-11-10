@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS = {
   showFloatingButton: true,
 
   // Phase 4: In-Page Web Annotator Settings
+  annotatorEnabled: true, // Master toggle to enable/disable the In-Page Web Annotator module
   annotatorDefaultColor: 'yellow',
   annotatorSyncMode: 'auto', // 'auto' | 'manual' | 'local_only'
   annotatorObsidianFormat: 'callout', // 'callout' | 'mark' | 'plain'

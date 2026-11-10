@@ -12,7 +12,7 @@
  *   - AI "Digest" (summarize my annotations) & AI "Suggest" (propose key verbatim sentences to accept/reject as highlights)
  */
 
-import { getSettings } from './services/storage.js';
+import { getSettings, saveSettings } from './services/storage.js';
 import { ObsidianClient } from './services/obsidian-api.js';
 import { LLMService } from './services/llm-service.js';
 import {
@@ -91,6 +91,8 @@ const els = {
   addTagInput: document.getElementById('addTagInput'),
 
   // Annotations Tab UI
+  annotatorEnabledToggle: document.getElementById('annotatorEnabledToggle'),
+  annotatorStateBadge: document.getElementById('annotatorStateBadge'),
   annotationsCountBadge: document.getElementById('annotationsCountBadge'),
   sitePermissionBanner: document.getElementById('sitePermissionBanner'),
   sitePermissionText: document.getElementById('sitePermissionText'),
@@ -152,6 +154,7 @@ async function initWorkspace() {
   llm = new LLMService(settings);
 
   populateTemplateDropdown();
+  syncAnnotatorEnabledUI();
   bindUIEvents();
 
   // 1. Check Obsidian REST API status & load all available vault folders
@@ -175,10 +178,16 @@ async function initWorkspace() {
     startLiveBiDirectionalSync();
   }
 
-  // 5. Listen for real-time annotation updates from the content script
+  // 5. Listen for real-time annotation & settings updates
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && changes.obsidianAnnotationsByUrl && activeTab?.url) {
-      loadPageAnnotations();
+    if (area === 'local') {
+      if (changes.obsidianCompanionSettings) {
+        settings = changes.obsidianCompanionSettings.newValue || settings;
+        syncAnnotatorEnabledUI();
+      }
+      if (changes.obsidianAnnotationsByUrl && activeTab?.url) {
+        loadPageAnnotations();
+      }
     }
   });
 
@@ -196,6 +205,33 @@ async function initWorkspace() {
         await discoverRelevantNotesAndCheckSync();
       }
     } catch (_) {}
+  });
+}
+
+
+function syncAnnotatorEnabledUI() {
+  const isEnabled = settings?.annotatorEnabled !== false;
+  if (els.annotatorEnabledToggle) {
+    els.annotatorEnabledToggle.checked = isEnabled;
+  }
+  if (els.annotatorStateBadge) {
+    els.annotatorStateBadge.textContent = isEnabled ? 'Enabled' : 'Disabled';
+    els.annotatorStateBadge.style.background = isEnabled
+      ? 'rgba(16, 185, 129, 0.2)'
+      : 'rgba(239, 68, 68, 0.2)';
+    els.annotatorStateBadge.style.color = isEnabled ? '#6ee7b7' : '#fca5a5';
+  }
+  const controls = [
+    els.addStickyNoteBtn,
+    els.addAreaAnnotationBtn,
+    els.addPageNoteBtn,
+    els.addBookmarkMarkerBtn,
+    els.aiSuggestHighlightsBtn,
+    els.aiSummarizeAnnotationsBtn,
+    els.syncAnnotationsToObsidianBtn
+  ];
+  controls.forEach((btn) => {
+    if (btn) btn.disabled = !isEnabled;
   });
 }
 
@@ -367,7 +403,7 @@ function getFullNoteForObsidian() {
   const props = collectPropertiesFromUI();
   let bodyWithAnnotations = els.markdownEditor.value;
 
-  if (settings.annotatorSyncMode !== 'local_only') {
+  if (settings.annotatorEnabled !== false && settings.annotatorSyncMode !== 'local_only') {
     bodyWithAnnotations = upsertAnnotationsSectionInMarkdown(
       bodyWithAnnotations,
       pageAnnotations,
@@ -1165,6 +1201,17 @@ function bindUIEvents() {
   // -------------------------------------------------------------------------
   // ANNOTATIONS TAB EVENT LISTENERS
   // -------------------------------------------------------------------------
+  els.annotatorEnabledToggle?.addEventListener('change', async (e) => {
+    settings.annotatorEnabled = e.target.checked;
+    await saveSettings(settings);
+    syncAnnotatorEnabledUI();
+    showToast(
+      settings.annotatorEnabled
+        ? 'In-Page Web Annotator enabled!'
+        : 'In-Page Web Annotator disabled (selection toolbar & highlights hidden)'
+    );
+  });
+
   els.grantSitePermissionBtn?.addEventListener('click', async () => {
     if (!activeTab?.url) return;
     try {

@@ -255,7 +255,13 @@
 
     <!-- 3. Phase 4: In-Page Web Annotator & Site Permissions -->
     <section class="settings-card">
-      <h2>&#9998; 3. In-Page Web Annotator &amp; Site Permissions</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>&#9998; 3. In-Page Web Annotator &amp; Site Permissions</h2>
+        <label class="toggle-label" style="font-weight:600;color:#e9d5ff;font-size:13px;">
+          <input type="checkbox" id="annotatorEnabledCheckbox" checked />
+          <span>Enable Annotation Feature</span>
+        </label>
+      </div>
       <p class="desc">
         Configure default highlight colors, Obsidian Managed Block format, Fuzzy Re-Anchoring threshold, and per-site auto-restore permissions.
       </p>

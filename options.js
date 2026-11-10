@@ -45,6 +45,7 @@ const els = {
   llmTestResult: document.getElementById('llmTestResult'),
 
   // Annotator settings
+  annotatorEnabledCheckbox: document.getElementById('annotatorEnabledCheckbox'),
   annotatorDefaultColorSelect: document.getElementById('annotatorDefaultColorSelect'),
   annotatorSyncModeSelect: document.getElementById('annotatorSyncModeSelect'),
   annotatorObsidianFormatSelect: document.getElementById('annotatorObsidianFormatSelect'),
@@ -88,6 +89,9 @@ async function initOptions() {
   els.customSummaryPromptInput.value = settings.customSummaryPrompt || '';
 
   // Annotator fields
+  if (els.annotatorEnabledCheckbox) {
+    els.annotatorEnabledCheckbox.checked = settings.annotatorEnabled !== false;
+  }
   if (els.annotatorDefaultColorSelect) {
     els.annotatorDefaultColorSelect.value = settings.annotatorDefaultColor || 'yellow';
     els.annotatorSyncModeSelect.value = settings.annotatorSyncMode || 'auto';
@@ -179,6 +183,9 @@ function collectAllSettingsFromForm() {
   settings.tagPrefix = els.tagPrefixInput.value.trim();
   settings.customSummaryPrompt = els.customSummaryPromptInput.value.trim();
 
+  if (els.annotatorEnabledCheckbox) {
+    settings.annotatorEnabled = els.annotatorEnabledCheckbox.checked;
+  }
   if (els.annotatorDefaultColorSelect) {
     settings.annotatorDefaultColor = els.annotatorDefaultColorSelect.value;
     settings.annotatorSyncMode = els.annotatorSyncModeSelect.value;

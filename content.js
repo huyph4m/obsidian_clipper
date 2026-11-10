@@ -43,6 +43,7 @@
   let annotations = [];
   let activeDomRanges = new Map(); // ann.id -> Range
   let lastUsedColor = 'yellow';
+  let annotatorEnabled = true;
   let annotationsVisible = true;
   let currentSelectionRange = null;
   let reattachingAnnotationId = null;
@@ -750,6 +751,7 @@
   }
 
   function showSelectionToolbar(range) {
+    if (!annotatorEnabled) return;
     initShadowDomUI();
     const rect = range.getBoundingClientRect();
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
@@ -769,7 +771,10 @@
   async function loadAnnotationsForCurrentPage() {
     currentUrl = normalizeUrl(window.location.href);
     return new Promise((resolve) => {
-      chrome.storage.local.get(['obsidianAnnotationsByUrl'], (res) => {
+      chrome.storage.local.get(['obsidianAnnotationsByUrl', 'obsidianCompanionSettings'], (res) => {
+        const settings = res?.obsidianCompanionSettings || {};
+        annotatorEnabled = settings.annotatorEnabled !== false;
+        if (settings.annotatorDefaultColor) lastUsedColor = settings.annotatorDefaultColor;
         const map = res?.obsidianAnnotationsByUrl || {};
         const list = Array.isArray(map[currentUrl]) ? map[currentUrl] : [];
         annotations = list.filter((a) => a.status !== 'deleted');
@@ -912,7 +917,11 @@
     activeDomRanges.clear();
     overlayLayerEl.innerHTML = '';
 
-    if (!annotationsVisible) return;
+    if (!annotatorEnabled || !annotationsVisible) {
+      hideSelectionToolbar();
+      closeAnnotationPopover();
+      return;
+    }
 
     const rangesByColor = new Map();
     COLORS.forEach((c) => rangesByColor.set(c.id, []));
@@ -1611,6 +1620,7 @@
    * -------------------------------------------------------------------------
    */
   document.addEventListener('mouseup', (e) => {
+    if (!annotatorEnabled) return;
     if (e.target.closest('#obsidian-web-annotator-host')) return;
     setTimeout(() => {
       const sel = window.getSelection();
@@ -1625,6 +1635,7 @@
 
   // Hover & click detection on `<mark data-obsidian-ann-id>` elements
   document.addEventListener('mouseover', (e) => {
+    if (!annotatorEnabled) return;
     const mark = e.target.closest?.('mark[data-obsidian-ann-id]');
     if (!mark) return;
     const annId = mark.getAttribute('data-obsidian-ann-id');
@@ -1637,6 +1648,7 @@
   });
 
   document.addEventListener('click', (e) => {
+    if (!annotatorEnabled) return;
     if (e.target.closest?.('#obsidian-web-annotator-host')) return;
     const mark = e.target.closest?.('mark[data-obsidian-ann-id]');
     if (mark) {
@@ -1702,11 +1714,18 @@
 
   // Listen to storage changes so edits from Side Panel or Obsidian Sync immediately update in-page DOM!
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && changes.obsidianAnnotationsByUrl) {
-      const map = changes.obsidianAnnotationsByUrl.newValue || {};
-      const updatedList = Array.isArray(map[currentUrl]) ? map[currentUrl] : [];
-      annotations = updatedList.filter((a) => a.status !== 'deleted');
-      renderAllAnnotationsOnPage();
+    if (area === 'local') {
+      if (changes.obsidianCompanionSettings) {
+        const newSettings = changes.obsidianCompanionSettings.newValue || {};
+        annotatorEnabled = newSettings.annotatorEnabled !== false;
+        renderAllAnnotationsOnPage();
+      }
+      if (changes.obsidianAnnotationsByUrl) {
+        const map = changes.obsidianAnnotationsByUrl.newValue || {};
+        const updatedList = Array.isArray(map[currentUrl]) ? map[currentUrl] : [];
+        annotations = updatedList.filter((a) => a.status !== 'deleted');
+        renderAllAnnotationsOnPage();
+      }
     }
   });
 

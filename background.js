@@ -172,7 +172,10 @@ async function updateBadgeForTab(tabId, url) {
   }
 
   try {
-    const annotations = await annotationStore.getAnnotationsForUrl(url, false);
+    const settings = await getSettings();
+    const annotations = settings.annotatorEnabled !== false
+      ? await annotationStore.getAnnotationsForUrl(url, false)
+      : [];
     const activeCount = annotations.length;
 
     if (activeCount > 0) {

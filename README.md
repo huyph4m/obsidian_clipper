@@ -15,6 +15,7 @@ A full-featured Chrome Extension that connects your browser directly to **Obsidi
 
 ### 2. In-Page Web Annotator Module (`content.js`, `services/annotation-anchor.js`, `services/annotation-store.js`)
 Annotate any web page directly in place, persist annotations locally in IndexedDB (`ObsidianWebAnnotatorDB`), and sync them bi-directionally with your Obsidian note.
+- **One-Click Enable / Disable Toggle**: You can enable or disable the In-Page Web Annotator at any time using the **Enable In-Page Web Annotator** switch at the top of the Side Panel **Annotations** tab or in **⚙️ Settings → Section 3**. When disabled, the floating text-selection toolbar, in-page highlights, sticky pins, and area boxes are completely turned off on web pages while preserving your saved annotations in storage.
 
 #### Supported Annotation Types
 1. **Multi-Color Highlights**: 5 colors (`Yellow`, `Green`, `Blue`, `Purple`, `Pink`) with optional Markdown comments and `#tags`.
